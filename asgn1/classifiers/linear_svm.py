@@ -17,6 +17,10 @@ def load_split(split: str) -> tuple[list[str], list[int]]:
     return texts, labels
 
 
+def tokenize(text: str) -> str:
+    return " ".join(nltk.word_tokenize(text))
+
+
 def build_model(
     ngram_range: tuple = (1, 2),
     min_df: int = 3,
