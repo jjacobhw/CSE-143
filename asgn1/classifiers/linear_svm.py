@@ -1,9 +1,10 @@
 import csv
 from pathlib import Path
 
-import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
+
+from tokenization import get_tokenizer
 
 DATA_DIR = Path(__file__).parent.parent / "data" / "cleaned data"
 
@@ -17,28 +18,29 @@ def load_split(split: str) -> tuple[list[str], list[int]]:
     return texts, labels
 
 
-def tokenize(text: str) -> str:
-    return " ".join(nltk.word_tokenize(text))
-
-
 def build_model(
+    tokenizer_method: str = "split",
     ngram_range: tuple = (1, 2),
     min_df: int = 3,
     C: float = 1.0,
 ) -> tuple[TfidfVectorizer, LinearSVC]:
-    vectorizer = TfidfVectorizer(ngram_range=ngram_range, min_df=min_df, sublinear_tf=True)
+    vectorizer = TfidfVectorizer(
+        tokenizer=get_tokenizer(tokenizer_method),
+        token_pattern=None,
+        lowercase=False,
+        ngram_range=ngram_range,
+        min_df=min_df,
+        sublinear_tf=True,
+    )
     clf = LinearSVC(C=C, max_iter=2000)
     return vectorizer, clf
 
 
 def train(vectorizer: TfidfVectorizer, clf: LinearSVC, texts: list[str], labels: list[int]):
-    nltk.download("punkt_tab", quiet=True)
-    tokenized = [tokenize(t) for t in texts]
-    X = vectorizer.fit_transform(tokenized)
+    X = vectorizer.fit_transform(texts)
     clf.fit(X, labels)
 
 
 def predict(vectorizer: TfidfVectorizer, clf: LinearSVC, texts: list[str]) -> list[int]:
-    tokenized = [tokenize(t) for t in texts]
-    X = vectorizer.transform(tokenized)
+    X = vectorizer.transform(texts)
     return clf.predict(X)
