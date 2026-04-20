@@ -15,7 +15,15 @@ def toktok_tokenize(text):
 
 # NLTK's word_tokenizer
 def nltk_word_tokenize_text(text):
-    return word_tokenize(text)
+    try:
+        return word_tokenize(text)
+    except LookupError:
+        nltk.download("punkt", quiet=True)
+        try:
+            nltk.download("punkt_tab", quiet=True)
+        except Exception:
+            pass
+        return word_tokenize(text)
 
 # NLTK wordpunct_tokenizer
 def wordpunct_tokenize_text(text):

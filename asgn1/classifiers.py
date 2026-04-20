@@ -8,7 +8,7 @@ from sklearn.naive_bayes import MultinomialNB
 
 from tokenization import get_tokenizer
 
-DATA_DIR = Path(__file__).parent.parent / "data" / "cleaned data"
+DATA_DIR = Path(__file__).parent / "data" / "cleaned data"
 
 
 def load_split(split: str) -> tuple[list[str], list[int]]:

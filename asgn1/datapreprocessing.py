@@ -27,7 +27,12 @@ def save_clean(data: list[dict], path: str) -> None:
 
 
 if __name__ == "__main__":
+    base_dir = Path(__file__).parent
+    raw_dir = base_dir / "data" / "raw data"
+    cleaned_dir = base_dir / "data" / "cleaned data"
+
     for split in ("train", "dev", "test"):
-        data = load_and_clean(f"raw data/{split}.csv")
-        save_clean(data, f"data/cleaned/{split}.csv")
-        print(f"{split}: {len(data)} examples -> data/cleaned/{split}.csv")
+        data = load_and_clean(raw_dir / f"{split}.csv")
+        out_path = cleaned_dir / f"{split}.csv"
+        save_clean(data, out_path)
+        print(f"{split}: {len(data)} examples -> {out_path}")
