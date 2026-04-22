@@ -28,7 +28,11 @@ def save_clean(data: list[dict], path: str) -> None:
 
 if __name__ == "__main__":
     base_dir = Path(__file__).parent
+
     raw_dir = base_dir / "data" / "raw data"
+    if not (raw_dir / "train.csv").exists():
+        raw_dir = base_dir / "data"
+
     cleaned_dir = base_dir / "data" / "cleaned data"
 
     for split in ("train", "dev", "test"):
