@@ -1,48 +1,49 @@
 # Spam Detection with TF-IDF and Linear SVM
 
-A CSE 143 (NLP) final project. We build a text spam detector and compare how
-it performs on two different domains: **SMS text messages** and **emails**.
+My CSE 143 (NLP) final project. It builds a text spam detector and checks how it
+does on two kinds of data: SMS text messages and emails.
 
 ## What the project does
 
-We turn raw text into TF-IDF features and train a **Linear Support Vector
-Machine (LinearSVC)** to classify each message as `ham` (not spam) or `spam`.
-We run the same pipeline on both datasets and compare the results. We also try
-two simple baselines (Naive Bayes and Logistic Regression) for comparison.
+We turn the raw text into TF-IDF features and train a Linear SVM (`LinearSVC`)
+to label each message as `ham` (not spam) or `spam`. We run the same steps on
+both datasets and compare the results. We also try two simpler models (Naive
+Bayes and Logistic Regression) to see if the SVM is actually better.
 
 ## Datasets
 
-The data files live in the `data/` folder:
+The data files go in the `data/` folder:
 
-- `data/sms_spam_collection.tsv` — SMS Spam Collection. Tab-separated, no
-  header. Column 1 is the label (`ham`/`spam`), column 2 is the message text.
-- `data/enron_spam_data.csv` — Enron email dataset. We combine the `Subject`
-  and `Message` columns into one text field and use `Spam/Ham` as the label.
+- `data/sms_spam_collection.tsv` — SMS Spam Collection. Tab-separated, no header.
+  Column 1 is the label (`ham`/`spam`), column 2 is the message.
+- `data/enron_spam_data.csv` — Enron emails. We join the `Subject` and `Message`
+  columns into one text field and use `Spam/Ham` as the label.
 
-> Note: the raw data files are not committed. Place them in the `data/` folder
-> before running the notebook.
+Note: the raw data files are not committed. Put them in the `data/` folder before
+running the notebook.
 
 ## Methods
 
-- **Features:** `TfidfVectorizer` (word and optional character n-grams).
+- **Features:** `TfidfVectorizer` (words, with an option for character n-grams).
 - **Main model:** `LinearSVC` with `class_weight="balanced"`.
-- **No data leakage:** everything is wrapped in a scikit-learn `Pipeline`, so
-  TF-IDF is fit only on the training split.
-- **Split:** `train_test_split` with `stratify=y` and `random_state=42`.
+- **No data leakage:** everything is in a scikit-learn `Pipeline`, so TF-IDF is
+  only fit on the training data.
+- **Split:** `train_test_split` with `stratify=y` to keep the class balance.
+- **Cross-validation:** `StratifiedKFold` with `shuffle=True` (5 folds).
 
 ## Metrics
 
-Accuracy, precision, recall, F1, and **F2** (weights recall more heavily),
-plus a confusion matrix and 5-fold cross-validation.
+Accuracy, precision, recall, F1, and F2 (F2 weights recall more), plus a
+confusion matrix. `spam` is the positive class.
 
 ## Project structure
 
 ```
 final/
   data/        # the two dataset files
-  src/         # reusable functions (preprocessing, modeling, evaluation)
-  results/     # saved confusion matrices and metrics summary CSV
-  spam_detection_final.ipynb   # the full story: experiments + charts
+  src/         # helper functions (preprocessing, modeling, evaluation)
+  results/     # saved confusion matrices and the metrics summary CSV
+  spam_detection_final.ipynb   # the experiments and charts
   requirements.txt
   README.md
 ```
@@ -61,4 +62,4 @@ final/
    jupyter notebook spam_detection_final.ipynb
    ```
 
-3. Run all cells from top to bottom.
+3. Run all the cells from top to bottom.

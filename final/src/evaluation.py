@@ -1,4 +1,4 @@
-"""Metrics, plots, and reporting helpers for the experiments."""
+# Functions for calculating metrics, drawing the confusion matrix, and saving results.
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -12,15 +12,13 @@ from sklearn.metrics import (
     recall_score,
 )
 
-# Fixed label order so the confusion matrix is always laid out the same way.
+# Fixed label order so the confusion matrix always looks the same.
 LABELS = ["ham", "spam"]
 
 
-def calculate_metrics(y_true, y_pred) -> dict:
-    """Return the five metrics we care about, treating "spam" as positive.
-
-    F2 is like F1 but weights recall more heavily (beta=2).
-    """
+# Returns the five metrics we care about, with spam as the positive class.
+# F2 is like F1 but weights recall more (beta=2).
+def calculate_metrics(y_true, y_pred):
     return {
         "accuracy": accuracy_score(y_true, y_pred),
         "precision": precision_score(y_true, y_pred, pos_label="spam", zero_division=0),
@@ -30,8 +28,8 @@ def calculate_metrics(y_true, y_pred) -> dict:
     }
 
 
+# Draws the confusion matrix as a heatmap and saves it if we pass a path.
 def plot_confusion_matrix(y_true, y_pred, title, save_path=None):
-    """Draw a labeled confusion matrix as a heatmap."""
     cm = confusion_matrix(y_true, y_pred, labels=LABELS)
 
     plt.figure(figsize=(5, 4))
@@ -48,20 +46,20 @@ def plot_confusion_matrix(y_true, y_pred, title, save_path=None):
     plt.title(title)
     plt.tight_layout()
 
-    # Save to results/ if a path was given (so we can put it in the report).
+    # Save to results/ if we got a path, so we can use it in the report.
     if save_path is not None:
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
 
     plt.show()
 
 
+# Saves a list of result dicts (one per experiment) to a CSV file.
 def save_metrics_summary(results_list, save_path):
-    """Save a list of result dicts (one per experiment) to a CSV file."""
     summary_df = pd.DataFrame(results_list)
     summary_df.to_csv(save_path, index=False)
     return summary_df
 
 
+# Prints scikit-learn's per-class precision/recall/F1 report.
 def print_classification_report(y_true, y_pred):
-    """Print scikit-learn's per-class precision/recall/F1 report."""
     print(classification_report(y_true, y_pred, labels=LABELS, zero_division=0))

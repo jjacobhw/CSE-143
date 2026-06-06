@@ -1,27 +1,21 @@
-"""Model pipelines and train/evaluate helpers.
-
-Everything uses a scikit-learn Pipeline so the TF-IDF vectorizer is fit only
-on the training data. This avoids data leakage (the test set never influences
-the vocabulary or IDF weights).
-"""
+# Builds the models and the helper functions for training and testing.
+# Everything is wrapped in a scikit-learn Pipeline so TF-IDF only learns from
+# the training data. This avoids leaking info from the test set.
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import fbeta_score, make_scorer
-from sklearn.model_selection import cross_validate, train_test_split
+from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
 
+# Our main model: TF-IDF turns text into numbers, then LinearSVC classifies it.
+# analyzer="word" uses words, analyzer="char" uses character n-grams.
 def build_svm_pipeline(ngram_range=(1, 2), analyzer="word"):
-    """TF-IDF + Linear SVM. This is our main model.
-
-    - analyzer="word": normal words/word-pairs (uses English stop words).
-    - analyzer="char": character n-grams (useful for tricky/short text).
-    """
-    # Stop words only make sense for word-level features.
+    # Stop words only make sense for words, not characters.
     stop_words = "english" if analyzer == "word" else None
 
     vectorizer = TfidfVectorizer(
@@ -35,25 +29,22 @@ def build_svm_pipeline(ngram_range=(1, 2), analyzer="word"):
     return Pipeline([("tfidf", vectorizer), ("clf", classifier)])
 
 
+# Baseline model: TF-IDF + Naive Bayes.
 def build_nb_pipeline(ngram_range=(1, 2)):
-    """Simple baseline: TF-IDF + Multinomial Naive Bayes."""
     vectorizer = TfidfVectorizer(ngram_range=ngram_range, stop_words="english")
     return Pipeline([("tfidf", vectorizer), ("clf", MultinomialNB())])
 
 
+# Baseline model: TF-IDF + Logistic Regression.
 def build_logreg_pipeline(ngram_range=(1, 2)):
-    """Simple baseline: TF-IDF + Logistic Regression."""
     vectorizer = TfidfVectorizer(ngram_range=ngram_range, stop_words="english")
     classifier = LogisticRegression(max_iter=1000, class_weight="balanced")
     return Pipeline([("tfidf", vectorizer), ("clf", classifier)])
 
 
+# Splits the data, trains the model, and predicts on the test set.
+# stratify=y keeps the same ham/spam balance in train and test.
 def train_test_model(df, model, test_size=0.2, random_state=42):
-    """Split the data, train the model, and predict on the test set.
-
-    stratify=y keeps the same ham/spam ratio in train and test, which matters
-    for imbalanced data. random_state=42 makes the split reproducible.
-    """
     X = df["text"]
     y = df["label"]
 
@@ -71,17 +62,15 @@ def train_test_model(df, model, test_size=0.2, random_state=42):
     return model, X_train, X_test, y_train, y_test, y_pred
 
 
+# Runs cross-validation and returns the mean and std for each metric.
+# StratifiedKFold with shuffle=True keeps the ham/spam balance in each fold and
+# shuffles first so the folds are not based on the original file order.
 def cross_validate_model(df, model, cv=5):
-    """Run k-fold cross-validation and report mean/std for each metric.
-
-    We treat "spam" as the positive class. F2 weights recall more than
-    precision, because missing spam (a false negative) is usually worse than
-    a false alarm in this setting.
-    """
     X = df["text"]
     y = df["label"]
 
-    # Custom scorers that know "spam" is the positive label.
+    # spam is the positive class for precision, recall, F1, and F2.
+    # F2 weights recall more than precision (missing spam is worse than a false alarm).
     scoring = {
         "accuracy": "accuracy",
         "precision": make_scorer(_safe_score, metric="precision"),
@@ -90,9 +79,15 @@ def cross_validate_model(df, model, cv=5):
         "f2": make_scorer(fbeta_score, beta=2, pos_label="spam", zero_division=0),
     }
 
-    cv_results = cross_validate(model, X, y, cv=cv, scoring=scoring)
+    cv_strategy = StratifiedKFold(
+        n_splits=cv,
+        shuffle=True,
+        random_state=42,
+    )
 
-    # Summarize each metric as mean and standard deviation across folds.
+    cv_results = cross_validate(model, X, y, cv=cv_strategy, scoring=scoring)
+
+    # Get the mean and std for each metric across the folds.
     summary = {}
     for metric in scoring:
         scores = cv_results[f"test_{metric}"]
@@ -101,8 +96,8 @@ def cross_validate_model(df, model, cv=5):
     return summary
 
 
+# Small helper so precision and recall share one function (spam is positive).
 def _safe_score(y_true, y_pred, metric):
-    """Small helper so precision/recall scorers share one definition."""
     from sklearn.metrics import precision_score, recall_score
 
     if metric == "precision":
