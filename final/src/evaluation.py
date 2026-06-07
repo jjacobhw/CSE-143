@@ -1,4 +1,4 @@
-# Functions for calculating metrics, drawing the confusion matrix, and saving results.
+# Functions for calculating metrics, drawing the confusion matrix, and saving results
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -12,12 +12,12 @@ from sklearn.metrics import (
     recall_score,
 )
 
-# Fixed label order so the confusion matrix always looks the same.
+# Fixed label order so the confusion matrix always looks the same
 LABELS = ["ham", "spam"]
 
 
-# Returns the five metrics we care about, with spam as the positive class.
-# F2 is like F1 but weights recall more (beta=2).
+# Returns the five metrics we care about, with spam as the positive class
+# F2 is like F1 but weights recall more (beta=2)
 def calculate_metrics(y_true, y_pred):
     return {
         "accuracy": accuracy_score(y_true, y_pred),
@@ -28,7 +28,7 @@ def calculate_metrics(y_true, y_pred):
     }
 
 
-# Draws the confusion matrix as a heatmap and saves it if we pass a path.
+# Draws the confusion matrix as a heatmap and saves it if we pass a path
 def plot_confusion_matrix(y_true, y_pred, title, save_path=None):
     cm = confusion_matrix(y_true, y_pred, labels=LABELS)
 
@@ -46,14 +46,14 @@ def plot_confusion_matrix(y_true, y_pred, title, save_path=None):
     plt.title(title)
     plt.tight_layout()
 
-    # Save to results/ if we got a path, so we can use it in the report.
+    # Save to results/ if we got a path, so we can use it in the report
     if save_path is not None:
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
 
     plt.show()
 
 
-# Saves a list of result dicts (one per experiment) to a CSV file.
+# Saves a list of result dicts (one per experiment) to a CSV file
 def save_metrics_summary(results_list, save_path):
     summary_df = pd.DataFrame(results_list)
     summary_df.to_csv(save_path, index=False)

@@ -1,6 +1,6 @@
 # Builds the models and the helper functions for training and testing.
 # Everything is wrapped in a scikit-learn Pipeline so TF-IDF only learns from
-# the training data. This avoids leaking info from the test set.
+# the training data. This avoids leaking info from the test set
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -12,8 +12,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
 
-# Our main model: TF-IDF turns text into numbers, then LinearSVC classifies it.
-# analyzer="word" uses words, analyzer="char" uses character n-grams.
+# Our main model: TF-IDF turns text into numbers, then LinearSVC classifies it
+# analyzer="word" uses words, analyzer="char" uses character n-grams
 def build_svm_pipeline(ngram_range=(1, 2), analyzer="word"):
     # Stop words only make sense for words, not characters.
     stop_words = "english" if analyzer == "word" else None
@@ -23,27 +23,27 @@ def build_svm_pipeline(ngram_range=(1, 2), analyzer="word"):
         ngram_range=ngram_range,
         stop_words=stop_words,
     )
-    # class_weight="balanced" helps when one class is rarer than the other.
+    # class_weight="balanced" helps when one class is rarer than the other
     classifier = LinearSVC(class_weight="balanced")
 
     return Pipeline([("tfidf", vectorizer), ("clf", classifier)])
 
 
-# Baseline model: TF-IDF + Naive Bayes.
+# Baseline model: TF-IDF + Naive Bayes
 def build_nb_pipeline(ngram_range=(1, 2)):
     vectorizer = TfidfVectorizer(ngram_range=ngram_range, stop_words="english")
     return Pipeline([("tfidf", vectorizer), ("clf", MultinomialNB())])
 
 
-# Baseline model: TF-IDF + Logistic Regression.
+# Baseline model: TF-IDF + Logistic Regression
 def build_logreg_pipeline(ngram_range=(1, 2)):
     vectorizer = TfidfVectorizer(ngram_range=ngram_range, stop_words="english")
     classifier = LogisticRegression(max_iter=1000, class_weight="balanced")
     return Pipeline([("tfidf", vectorizer), ("clf", classifier)])
 
 
-# Splits the data, trains the model, and predicts on the test set.
-# stratify=y keeps the same ham/spam balance in train and test.
+# Splits the data, trains the model, and predicts on the test set
+# stratify=y keeps the same ham/spam balance in train and test
 def train_test_model(df, model, test_size=0.2, random_state=42):
     X = df["text"]
     y = df["label"]
@@ -62,15 +62,15 @@ def train_test_model(df, model, test_size=0.2, random_state=42):
     return model, X_train, X_test, y_train, y_test, y_pred
 
 
-# Runs cross-validation and returns the mean and std for each metric.
+# Runs cross-validation and returns the mean and std for each metric
 # StratifiedKFold with shuffle=True keeps the ham/spam balance in each fold and
-# shuffles first so the folds are not based on the original file order.
+# shuffles first so the folds are not based on the original file order
 def cross_validate_model(df, model, cv=5):
     X = df["text"]
     y = df["label"]
 
-    # spam is the positive class for precision, recall, F1, and F2.
-    # F2 weights recall more than precision (missing spam is worse than a false alarm).
+    # spam is the positive class for precision, recall, F1, and F2
+    # F2 weights recall more than precision (missing spam is worse than a false alarm)
     scoring = {
         "accuracy": "accuracy",
         "precision": make_scorer(_safe_score, metric="precision"),
@@ -87,7 +87,7 @@ def cross_validate_model(df, model, cv=5):
 
     cv_results = cross_validate(model, X, y, cv=cv_strategy, scoring=scoring)
 
-    # Get the mean and std for each metric across the folds.
+    # Get the mean and std for each metric across the folds
     summary = {}
     for metric in scoring:
         scores = cv_results[f"test_{metric}"]
@@ -96,7 +96,7 @@ def cross_validate_model(df, model, cv=5):
     return summary
 
 
-# Small helper so precision and recall share one function (spam is positive).
+# Small helper so precision and recall share one function (spam is positive)
 def _safe_score(y_true, y_pred, metric):
     from sklearn.metrics import precision_score, recall_score
 
