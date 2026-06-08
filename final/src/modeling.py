@@ -29,32 +29,26 @@ def build_svm_pipeline(ngram_range=(1, 2), analyzer="word"):
     return Pipeline([("tfidf", vectorizer), ("clf", classifier)])
 
 
-# Baseline model: TF-IDF + Naive Bayes
+# Naive Bayes Baseline model
 def build_nb_pipeline(ngram_range=(1, 2)):
     vectorizer = TfidfVectorizer(ngram_range=ngram_range, stop_words="english")
     return Pipeline([("tfidf", vectorizer), ("clf", MultinomialNB())])
 
 
-# Baseline model: TF-IDF + Logistic Regression
+# Logistic Regression Baseline model
 def build_logreg_pipeline(ngram_range=(1, 2)):
     vectorizer = TfidfVectorizer(ngram_range=ngram_range, stop_words="english")
     classifier = LogisticRegression(max_iter=1000, class_weight="balanced")
     return Pipeline([("tfidf", vectorizer), ("clf", classifier)])
 
 
-# Splits the data, trains the model, and predicts on the test set
+# Spliting the data, training the model, and predicts on the test set
 # stratify=y keeps the same ham/spam balance in train and test
 def train_test_model(df, model, test_size=0.2, random_state=42):
     X = df["text"]
     y = df["label"]
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=y,
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state, stratify=y,)
 
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
@@ -79,11 +73,7 @@ def cross_validate_model(df, model, cv=5):
         "f2": make_scorer(fbeta_score, beta=2, pos_label="spam", zero_division=0),
     }
 
-    cv_strategy = StratifiedKFold(
-        n_splits=cv,
-        shuffle=True,
-        random_state=42,
-    )
+    cv_strategy = StratifiedKFold(n_splits=cv, shuffle=True,random_state=42)
 
     cv_results = cross_validate(model, X, y, cv=cv_strategy, scoring=scoring)
 
