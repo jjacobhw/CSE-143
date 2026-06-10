@@ -1,3 +1,8 @@
+## Group Members:
+- Jacob Wei
+- Andrei Ionov
+- Kasra Mokhtari
+
 # Text Spam Detector
 
 This project builds a text spam detector using TF-IDF features and machine learning classification models. We trained and tested our models on two datasets: the SMS Spam Collection for text messages and the Enron spam dataset for emails. The main model uses a Linear Support Vector Machine (Linear SVM), with Naive Bayes and Logistic Regression included as baseline comparisons. The project flow starts by loading and cleaning the datasets, then converting each message into TF-IDF numerical features, training the models, and evaluating their performance using accuracy, precision, recall, F1, F2, confusion matrices, and 5-fold cross-validation.
