@@ -8,7 +8,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import fbeta_score, make_scorer
 from sklearn.model_selection import StratifiedKFold, cross_validate, train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.svm import LinearSVC
 
 
@@ -27,6 +27,33 @@ def build_svm_pipeline(ngram_range=(1, 2), analyzer="word"):
     classifier = LinearSVC(class_weight="balanced")
 
     return Pipeline([("tfidf", vectorizer), ("clf", classifier)])
+
+
+# Combined model: word TF-IDF and character TF-IDF features side by side
+# Word n-grams catch phrases like "call now", character n-grams catch weird
+# spellings like "fr33" or "w1nner"
+def build_combined_svm_pipeline():
+    word_tfidf = TfidfVectorizer(
+        analyzer="word",
+        ngram_range=(1, 2),
+        stop_words="english",
+    )
+    char_tfidf = TfidfVectorizer(
+        analyzer="char",
+        ngram_range=(3, 5),
+    )
+
+    # FeatureUnion glues both feature sets together into one big feature matrix
+    features = FeatureUnion(
+        [
+            ("word_tfidf", word_tfidf),
+            ("char_tfidf", char_tfidf),
+        ]
+    )
+
+    classifier = LinearSVC(class_weight="balanced")
+
+    return Pipeline([("features", features), ("clf", classifier)])
 
 
 # Naive Bayes Baseline model

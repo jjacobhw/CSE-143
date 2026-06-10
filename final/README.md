@@ -36,6 +36,22 @@ running the notebook.
 Accuracy, precision, recall, F1, and F2 (F2 weights recall more), plus a
 confusion matrix. `spam` is the positive class.
 
+## N-Gram Experiment
+
+We compared three SVM setups on the SMS data: word TF-IDF, character TF-IDF,
+and a combined word + character TF-IDF model. Character n-grams look at
+patterns inside words, which can matter when spam uses weird spelling like
+"fr33" or "w1nner". The results are shown in the notebook and saved in
+`results/ngram_comparison.csv`.
+
+## Model Interpretability
+
+Because we use a Linear SVM, we can inspect the feature weights it learned.
+Positive weights are associated with `spam`, and negative weights are
+associated with `non-spam`. The notebook shows the strongest features for each
+dataset, and the Streamlit app shows the top model signals for each message you
+check (see `src/interpretability.py`).
+
 ## Project structure
 
 ```
